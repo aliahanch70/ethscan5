@@ -1,60 +1,44 @@
-"use client";
 import "./globals.css";
 import "./data-tables-css.css";
 import "./satoshi.css";
-import { useState, useEffect } from "react";
-import Loader from "@/components/common/Loader";
+import { cookies } from "next/headers"; // برای دسترسی به کوکی‌ها
+import jwt from "jsonwebtoken"; // برای تایید JWT
+import RootContent from "@/components/RootContent"; // Client Component
 
-import Sidebar from "@/components/Sidebar/Sidebar";
-import Header from "@/components/Header";
+const SECRET_KEY = process.env.SECRET_KEY || ''; // کلید مخفی برای رمزگشایی JWT
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  const [loading, setLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    setTimeout(() => setLoading(false), 1000);
-  }, []);
+  const user = getUserFromToken(); // دریافت کاربر از توکن (در سمت سرور)
 
   return (
-    <html lang="en">
+    <html lang="fa">
       <body suppressHydrationWarning={true}>
         <div className="dark:bg-black dark:text-bodydark">
-          {loading ? (
-            <Loader />
-          ) : (
-            <div className="flex h-screen overflow-hidden">
-              {/* <!-- ===== Sidebar Start ===== --> */}
-              <Sidebar />
-              {/* <!-- ===== Sidebar End ===== --> */}
-
-              {/* <!-- ===== Content Area Start ===== --> */}
-              <div className="relative flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
-                {/* <!-- ===== Header Start ===== --> */}
-                <Header
-                  sidebarOpen={sidebarOpen}
-                  setSidebarOpen={setSidebarOpen}
-                />
-                {/* <!-- ===== Header End ===== --> */}
-
-                {/* <!-- ===== Main Content Start ===== --> */}
-                <main>
-                  <div className="mx-auto max-w-screen-2xl p-4 md:p-6 2xl:p-10">
-                    {children}
-                  </div>
-                </main>
-                {/* <!-- ===== Main Content End ===== --> */}
-              </div>
-              {/* <!-- ===== Content Area End ===== --> */}
-            </div>
-          )}
+          {/* ارسال اطلاعات کاربر به Client Component */}
+          <RootContent user={user}>{children}</RootContent>
         </div>
       </body>
     </html>
   );
+}
+
+// تابع سمت سرور برای گرفتن اطلاعات کاربر از JWT در کوکی‌ها
+function getUserFromToken() {
+  const cookieStore = cookies();
+  const token = cookieStore.get('token')?.value;
+
+  if (token) {
+    try {
+      const decodedToken = jwt.verify(token, SECRET_KEY);
+      return decodedToken; // بازگشت payload دیکد شده توکن (مثلاً { username: 'example' })
+    } catch (err) {
+      console.error('خطا در تایید توکن:', err);
+      return null; // توکن نامعتبر یا منقضی
+    }
+  }
+  return null;
 }

@@ -1,6 +1,6 @@
 // pages/api/auth/status.js
 import { NextResponse } from "next/server";
-import clientPromise from "../../../lib/mongodb";
+import clientPromise from "../../../lib/mdb";
 import jwt from "jsonwebtoken";
 
 export async function GET(request) {

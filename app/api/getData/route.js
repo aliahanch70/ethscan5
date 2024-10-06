@@ -1,6 +1,6 @@
 // app/api/getData/route.js
 import { NextResponse } from 'next/server';
-import clientPromise from '../../../lib/mongodb';
+import clientPromise from '../../../lib/mdb';
 
 export async function GET() {
   try {
